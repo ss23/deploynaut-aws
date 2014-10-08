@@ -1,0 +1,15 @@
+{
+    "name": "ss23/deploynaut-aws",
+    "description": "Snowcake AWS backend for deploynaut",
+    "type": "silverstripe-module",
+    "require": {
+        "silverstripe/deploynaut": "*"
+    },
+    "license": "BSD-3-Clause",
+    "authors": [
+        {
+            "name": "Stephen Shkardoon",
+            "email": "ss23@ss23.geek.nz"
+        }
+    ]
+}
