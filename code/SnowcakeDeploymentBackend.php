@@ -31,6 +31,8 @@ class SnowcakeDeploymentBackend implements DeploymentBackend {
 		// Construct our snowcake command
 		// ./bin/snowcake-linux deploy $ENVIRONMENT $RECOGNIZABLESTRING $SHA
 		$name = $environment->SnowcakeName . '-' . substr($sha, 0, 8) . '-' . mt_rand();
+		// Filter invalid characters out of $name (Value 'ssorg_uat-fdceda2e-1400725889-bake' at 'stackName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*)
+		$name = str_replace('_', '-', $name);
 		$command = SNOWCAKE_PATH . ' deploy ' . $environment->SnowcakeName . ' ' . $name . ' ' . $sha;
 
 		$log->write("Running command: $command");
