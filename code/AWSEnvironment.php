@@ -27,6 +27,22 @@ class AWSEnvironment extends DNEnvironment {
 	 * @return FieldList
 	 */
 	public function getCMSFields() {
+		$project = $this->Project();
+		if($project && $project->exists()) {
+			$viewerGroups = $project->Viewers();
+			$groups = $viewerGroups->sort('Title')->map()->toArray();
+			$members = array();
+			foreach($viewerGroups as $group) {
+				foreach($group->Members()->map() as $k => $v) {
+					$members[$k] = $v;
+				}
+			}
+			asort($members);
+		} else {
+			$groups = array();
+			$members = array();
+		}
+
 		$fields = new FieldList(new TabSet('Root'));
 
 		$fields->addFieldsToTab('Root.Main', array(
@@ -46,6 +62,21 @@ class AWSEnvironment extends DNEnvironment {
 			TextField::create('SnowcakeName', 'Snowcake deploy name')
 				->setDescription('This must be the same as the snowcake folder name in the projects/ folder'),
 		));
+
+		$fields->addFieldsToTab('Root.UserPermissions', array(
+			// The viewers of the environment
+			$this
+				->buildPermissionField('ViewerGroups', 'Viewers', $groups, $members)
+				->setTitle('Who can view this environment?')
+				->setDescription('Groups or Users who can view this environment'),
+
+			// The Main.Deployers
+			$this
+				->buildPermissionField('DeployerGroups', 'Deployers', $groups, $members)
+				->setTitle('Who can deploy?')
+				->setDescription('Groups or Users who can deploy to this environment'),
+		));
+
 		return $fields;
 	}
 }
