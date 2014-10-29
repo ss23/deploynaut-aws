@@ -9,19 +9,16 @@
 class AWSEnvironment extends DNEnvironment {
 
 	/**
-	 * Use our proprietary deployment backend
-	 *
-	 * @var string
-	 */
-	protected $deploymentBackend = "SnowcakeDeploymentBackend";
-
-	/**
 	 * @var array
 	 */
 	public static $db = array(
 		'SnowcakeName' => 'Varchar(255)'
 
 	);
+
+	public function Backend() {
+		return Object::create_from_string("SnowcakeDeploymentBackend");
+	}
 
 	/**
 	 * @return FieldList
