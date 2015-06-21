@@ -4,38 +4,23 @@ use \Symfony\Component\Process\Process;
 class SnowcakeDeploymentBackend implements DeploymentBackend {
 
 	/**
-	 * This is a bit of a hack. To actually get the deployment, we should check one of the live
-	 * servers configuration
-	 */
-	public function currentBuild($environment) {
-		$file = DEPLOYNAUT_LOG_PATH . '/' . $environment . ".deploy-history.txt";
-
-		if(file_exists($file)) {
-			$lines = file($file);
-			$lastLine = array_pop($lines);
-			return $this->convertLine($lastLine);
-		}
-	}
-
-	/**
 	 * Use snowcake to do the deployment
 	 */
 	public function deploy(DNEnvironment $environment, $sha, DeploynautLogFile $log, DNProject $project, $leaveMaintenancePage = false) {
-		$log->write('Deploying "'.$sha.'" to "'.$project->Name.':'.$environment->Name.'"');
+		$log->write(sprintf('Deploying "%s" to "%s"', $sha, $environment->getFullName()));
 
-		if (!defined('SNOWCAKE_PATH')) {
+		if(!defined('SNOWCAKE_PATH')) {
 			$log->write('SNOWCAKE_PATH is not defined');
-			throw new RuntimeException("SNOWCAKE_PATH is not defined");
+			throw new RuntimeException('SNOWCAKE_PATH is not defined');
 		}
 
 		// Construct our snowcake command
-		// ./bin/snowcake-linux deploy $ENVIRONMENT $RECOGNIZABLESTRING $SHA
 		$name = $environment->SnowcakeName . '-' . substr($sha, 0, 8) . '-' . mt_rand();
-		// Filter invalid characters out of $name (Value 'ssorg_uat-fdceda2e-1400725889-bake' at 'stackName' failed to satisfy constraint: Member must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*)
+		// Filter invalid characters out of $name (Value 'ssorg_uat-fdceda2e-1400725889-bake' at 'stackName' failed to satisfy constraint:
+		// "Member must satisfy regular expression pattern: [a-zA-Z][-a-zA-Z0-9]*)"
 		$name = str_replace('_', '-', $name);
-		$command = SNOWCAKE_PATH . ' deploy ' . $environment->SnowcakeName . ' ' . $name . ' ' . $sha;
-
-		$log->write("Running command: $command");
+		$command = sprintf('%s deploy %s %s %s', SNOWCAKE_PATH, $environment->SnowcakeName, $name, $sha);
+		$log->write(sprintf('Running command: %s', $command));
 
 		$process = new Process($command, dirname(dirname(SNOWCAKE_PATH)));
 		$process->setTimeout(3600);
@@ -44,12 +29,11 @@ class SnowcakeDeploymentBackend implements DeploymentBackend {
 			$log->write($buffer);
 		});
 
-		// OH GOD, AN ERROR?
 		if(!$process->isSuccessful()) {
 			throw new RuntimeException($process->getErrorOutput());
 		}
 
-		$log->write('Deploy done "'.$sha.'" to "'.$project->Name.':'.$environment->Name.'"');
+		$log->write(sprintf('Deploy of "%s" to "%s" finished', $sha, $environment->getFullName()));
 	}
 
 	/**
