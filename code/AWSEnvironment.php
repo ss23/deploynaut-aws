@@ -16,6 +16,10 @@ class AWSEnvironment extends DNEnvironment {
 
 	);
 
+	private static $singular_name = 'Snowcake Environment';
+
+	private static $plural_name = 'Snowcake Environments';
+
 	public function Backend() {
 		return Object::create_from_string("SnowcakeDeploymentBackend");
 	}
